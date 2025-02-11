@@ -1,26 +1,11 @@
-#-------------------------------------------------------------------#
-#
-# AD-LISTA
-# Extrair a lista de usuários do Active Directory e envia por E-mail.
-# 
-# Criado por: Marcos Henrique
-# E-mail: marcos@100security.com.br
-# WebSite: http://www.100security.com.br/ad-lista
-# GitHub: https://www.github.com/100security/ad-lista
-#
-# Executar: 
-# ./ad-lista.ps1
-#
-#-------------------------------------------------------------------#
-
 $relatorio = $null
 $tabela = $null
-$data = Get-Date -format "dd/MM/yyyy" # Data no formato DIA/MÊS/ANO
-$arquivo = "ad-lista.html" # Arquivo gerado em HTML
-$total = (Get-ADUser -filter *).count # Total de Usuários no Active Directory
-$dominio = (Get-ADDomain).Forest # Nome do Domínio
-$analista = "Marcos Henrique" # Nome do Analista
-$empresa = "100SECURITY" # Nome da Empresa
+$data = Get-Date -format "dd/MM/yyyy" 
+$arquivo = "ad-lista.html" 
+$total = (Get-ADUser -filter *).count 
+$dominio = (Get-ADDomain).Forest 
+$analista = "Roger Gonçalves" 
+$empresa = "João Fortes Engenharia" 
 
 Import-Module ActiveDirectory
 
@@ -36,8 +21,6 @@ $resultado = @($usuarios | Select-Object Company, SamAccountName, Name, Mail, De
 # Ordenar pela Empresa (Company) A-Z
 $resultado = $resultado | Sort "Company" 
 
-# Comente esta linha para não exibir o resultado durante a execução do script.
-#$resultado | ft -auto 
 
 $tabela += $resultado | ConvertTo-Html -Fragment
  
@@ -81,17 +64,6 @@ $mensagem = $mensagem + "</table>"
 
 $relatorio = $formatacao + $titulo + $tabela
 
-#--GERAR O HTML-----------------------------------------------------#
 $relatorio | Out-File $arquivo -Encoding Utf8
 
-# Exportar para o formato CSV (ad-lista.csv)
 $resultado | Sort Company | Export-Csv ad-lista.csv -NoTypeInformation -Encoding Utf8
-
-#--ENVIAR RELATÓRIO VIA E-MAIL--------------------------------------#
-$de = "auditoria@100security.com.br"
-$para = "marcos@100security.com.br"
-$assunto = "Active Directory - $data"
-$smtp = "192.168.1.200"
-$porta = "25"
-
-Send-MailMessage -From $de -To $para -Subject $assunto -Attachments $arquivo,ad-lista.csv -bodyashtml -Body $mensagem -SmtpServer $smtp -Port $porta
